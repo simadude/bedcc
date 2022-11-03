@@ -1,6 +1,9 @@
 # BEDCC Binary EDitor for ComputerCraft
 Just download the **bed.lua** file and add it to your path on CC computer.
 (some vim-like keybindings for navigation are present)
+
+if you want to write binary or hexadecimal number after command then use '0b' or '0x' before the number respectfully.
+
 Usage:
 
     bed [option] filepath
@@ -14,14 +17,17 @@ Usage:
 default keybindings:
  - q ─ quit.
  - w ─ write to the file.
- - h ─ choose previous bit (left).
+ - h ─ choose bit to the left.
  - j ─ choose next byte/line (down).
  - k ─ choose previous byte/line (up).
- - l ─ choose next bit (right).
+ - l ─ choose bit to the right.
  - f ─ flip current bit.
  - i ─ increment selected byte.
  - u ─ decrement selected byte.
- - delete ─ deletes selected byte
+ - delete ─ deletes selected byte.
+ - backspace ─ deletes previous byte.
+ - c ─ creates byte above.
+ - C ─ creates byte below.
  - : ─ start typing a command.
 
 commands: (if x is not an integer it's going to round down)
@@ -33,3 +39,8 @@ commands: (if x is not an integer it's going to round down)
 - :s x ─ subtract x from the byte.
 - :m x ─ multiply the byte by x.
 - :d x ─ divide byte by x.
+- :ba x ─ bitwise 'and' operator.
+- :bo x ─ bitwise 'or' operator.
+- :bx x ─ bitwise 'xor' operator.
+- :brs x ─ shift byte to the right by x.
+- :bls x ─ shift byte to the shift by x.

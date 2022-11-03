@@ -15,7 +15,7 @@ local args = {...}
 
 -- check for any flags
 if args[1] == "-v" or args[1] == "--version" then
-    print("Binary EDitor version idk by SimaDude")
+    print("Binary EDitor version unbitwisea by SimaDude")
     return nil
 elseif args[1] == "-h" or args[1] == "--help" then
     print([[bed [options] filepath
@@ -127,6 +127,11 @@ csub        = ":s",
 cdiv        = ":d",
 cmul        = ":m",
 cflip       = ":f",
+cbitand     = ":ba",
+cbitor      = ":bo",
+cbitxor     = ":bx",
+cbitrshift  = ":brs",
+cbitlshift  = ":bls",
 cquit       = ":q",
 cwrite      = ":w",
 cwritequit  = ":wq"}
@@ -134,17 +139,20 @@ cwritequit  = ":wq"}
 local w, h = term.getSize()
 
 local curbit = 0
-local curEline = 8
+local curEline = 0
 local curDline = 0
 
 ---comment
 ---@param x string
----@return number
+---@return number|nil
 local function toInt8(x)
-    local mb = tonumber(string.sub(x, 1, 1), 2)*-128
+    local mb = tonumber(string.sub(x, 1, 1), 2)
     local rb = tonumber(string.sub(x, 2, 8), 2)
+    if mb == nil or rb == nil then
+        return nil
+    end
 
-    return mb + rb
+    return mb*-128 + rb
 end
 
 local nums = {"1","2","3","4","5","6","7","8","9","0"}
@@ -245,7 +253,7 @@ local function redraw()
         term.write(string.format("%s - write to file", cfg.cwrite))
 
         term.setCursorPos(29, 10)
-        term.write(string.format("%s - write to file and quit", cfg.cquitwrite))
+        term.write(string.format("%s - write to file and quit", cfg.cwritequit))
 
         term.setCursorPos(31, 12)
         term.write(command)
@@ -289,6 +297,15 @@ local function redraw()
     term.setCursorPos(1, h)
 end
 
+local loop = true
+local function quit(r)
+    loop = false
+    term.clear()
+    term.setCursorPos(1, 1)
+    sleep(0.1) -- without sleep the 'q' would appear at the start of string in shell
+               -- if exited by hitting 'q' key
+    return r
+end
 
 local function write()
     local fh = fs.open(filepath, "wb")
@@ -303,7 +320,10 @@ local function write()
 end
 
 
-local loop = true
+
+
+
+
 local function execCommand(cmd)
     cmd = cmd.." "
     local cmds = {}
@@ -320,19 +340,31 @@ local function execCommand(cmd)
 
     -- commands that don't require first argument to be a number
     if cmds[1] == cfg.cquit then
-        loop = false
-        return ""
+        return quit(0)
     elseif cmds[1] == cfg.cwrite then
         return write()
     elseif cmds[1] == cfg.cwritequit then
-        loop = false
-        return write()
+        local c = write()
+        if string.sub(c, 1, 1) == "c" then
+            return c
+        end
+        return quit(0)
     end
 
-    if tostring(tonumber(cmds[2])) ~= cmds[2] then
-        return string.format("can't convert to a number: %s", cmds[2])
+    if string.sub(cmds[2], 1, 2) == "0x" then
+        local c = tonumber(string.sub(cmds[2], 3, #cmds[2]), 16)
+        if not c then return string.format("can't convert to a number: %s", cmds[2]) end
+        cmds[2] = c
+    elseif string.sub(cmds[2], 1, 2) == "0b" then
+        local c = tonumber(string.sub(cmds[2], 3, #cmds[2]), 2)
+        if not c then return string.format("can't convert to a number: %s", cmds[2]) end
+        cmds[2] = c
     else
-        cmds[2] = math.floor(tonumber(cmds[2]))
+        if tostring(tonumber(cmds[2])) ~= cmds[2] then
+            return string.format("can't convert to a number: %s", cmds[2])
+        else
+            cmds[2] = math.floor(tonumber(cmds[2]))
+        end
     end
 
     if cmds[1] == cfg.cadd then
@@ -355,11 +387,38 @@ local function execCommand(cmd)
         s = toBin((tonumber(s, 2) / cmds[2])%255)
 
         bintable[curEline+1] = s
+    elseif cmds[1] == cfg.cbitand then
+        local s = bintable[curEline+1]
+        s = toBin(bit32.band(tonumber(s, 2), cmds[2]))
+
+        bintable[curEline+1] = s
+    elseif cmds[1] == cfg.cbitor then
+        local s = bintable[curEline+1]
+        s = toBin(bit32.bor(tonumber(s, 2), cmds[2]))
+
+        bintable[curEline+1] = s
+    elseif cmds[1] == cfg.cbitxor then
+        local s = bintable[curEline+1]
+        s = toBin(bit32.bxor(tonumber(s, 2), cmds[2]))
+
+        bintable[curEline+1] = s
+    elseif cmds[1] == cfg.cbitrshift then
+        local s = bintable[curEline+1]
+        s = toBin(bit32.rshift(tonumber(s, 2), cmds[2])%255)
+
+        bintable[curEline+1] = s
+    elseif cmds[1] == cfg.cbitlshift then
+        local s = bintable[curEline+1]
+        s = toBin(bit32.lshift(tonumber(s, 2), cmds[2])%255)
+
+        bintable[curEline+1] = s
     else
         return string.format("unknown command %s", cmds[1])
     end
     return string.format("success - %s", cmd)
 end
+
+
 
 
 
@@ -386,8 +445,7 @@ while loop do
     if not commandmode then
         if event[1] == "key" then
             if event[2] == cfg.quit then
-                term.clear()
-                term.setCursorPos(1, 1)
+                quit()
                 break
             -- go to Left
             elseif event[2] == cfg.left or event[2] == cfg.left1 then
@@ -504,6 +562,9 @@ while loop do
         elseif event[1] == "key" then
             if event[2] == keys.enter then
                 commandresult = execCommand(command)
+                if commandresult == 0 then
+                    return 0
+                end
                 commandmode = false
                 redraw()
             elseif event[2] == keys.backspace then
