@@ -2,6 +2,8 @@
 Just download the **bed.lua** file and add it to your path on CC computer.
 (some vim-like keybindings for navigation are present)
 
+pastebin link - https://pastebin.com/hTag3yBE
+
 if you want to write binary or hexadecimal number after command then use '0b' or '0x' before the number respectfully.
 
 Usage:
