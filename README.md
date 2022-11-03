@@ -1,4 +1,7 @@
 # BEDCC Binary EDitor for ComputerCraft
+BEDCC - Binary EDitor for ComputerCraft. BEDCC is an editor for editing files in binary format.
+![](https://i.imgur.com/iPbUYXZ.png)
+
 Just download the **bed.lua** file and add it to your path on CC computer.
 (some vim-like keybindings for navigation are present)
 
