@@ -15,7 +15,7 @@ local args = {...}
 
 -- check for any flags
 if args[1] == "-v" or args[1] == "--version" then
-    print("Binary EDitor version unbitwisea by SimaDude")
+    print("Binary EDitor version Good by SimaDude")
     return nil
 elseif args[1] == "-h" or args[1] == "--help" then
     print([[bed [options] filepath
@@ -157,7 +157,7 @@ end
 
 local nums = {"1","2","3","4","5","6","7","8","9","0"}
 local function elementExists (t, e)
-    for _, v in ipairs(t) do
+    for _, v in pairs(t) do
         if v == e then
             return true
         end
@@ -212,18 +212,18 @@ local function redraw()
         term.setCursorPos(29, 8)
         term.write(keys.getName(cfg.flip).." - flip selected bit")
 
-        
+
         term.setCursorPos(29, 9)
         term.write(cfg.createunder.." - create byte under")
 
         term.setCursorPos(29, 10)
         term.write(cfg.createabove.." - create byte upper")
-        
+
         term.setCursorPos(29, 11)
         term.write(keys.getName(cfg.delete).." - delete this")
         term.setCursorPos(29, 12)
         term.write("byte")
-        
+
         term.setCursorPos(29, 13)
         term.write(keys.getName(cfg.backdelete).." - delete")
         term.setCursorPos(29, 14)
@@ -255,7 +255,22 @@ local function redraw()
         term.setCursorPos(29, 10)
         term.write(string.format("%s - write to file and quit", cfg.cwritequit))
 
-        term.setCursorPos(31, 12)
+        term.setCursorPos(29, 11)
+        term.write(string.format("%s x - bitwise and", cfg.cbitand))
+
+        term.setCursorPos(29, 12)
+        term.write(string.format("%s x - bitwise or", cfg.cbitor))
+
+        term.setCursorPos(29, 13)
+        term.write(string.format("%s x - bitwise xor", cfg.cbitxor))
+
+        term.setCursorPos(29, 14)
+        term.write(string.format("%s x - bitwise right shift", cfg.cbitrshift))
+
+        term.setCursorPos(29, 15)
+        term.write(string.format("%s x - bitwise left shift", cfg.cbitlshift))
+
+        term.setCursorPos(31, 16)
         term.write(command)
     end
 
@@ -336,6 +351,11 @@ local function execCommand(cmd)
         else
             curc = curc..s
         end
+    end
+
+    -- check if command exists in config
+    if not elementExists(cfg, cmds[1]) then
+        return string.format("Unknown command %s", cmds[1])
     end
 
     -- commands that don't require first argument to be a number
